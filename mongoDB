@@ -1,0 +1,218 @@
+use exampleDB;
+db.createCollection("location");
+db.createCollection("markedStatus");
+db.createCollection("groupLocations");
+db.createCollection("currentdata");
+
+db.groupLocations.insertMany([{
+  instance: 12, l_id: 1, includeFlag: 1
+  },{
+    instance: 12, l_id: 2, includeFlag: 1
+  },
+  {
+    instance: 12, l_id: 3, includeFlag: 1
+  },
+  {
+    instance: 12, l_id: 4, includeFlag: 0
+  },
+  {
+    instance: 12, l_id: 5, includeFlag: 1 
+  },
+  {
+    instance: 12, l_id: 6, includeFlag: 1
+  }
+]);
+
+
+db.location.insertMany([{
+    my_id: 1, name: "LAX", abbrev: "airport1", lType:101, latitude: 33.94159, longitude: -118.40853, status:1
+  }, {
+    my_id: 2, name: "BUR", abbrev: "airport2", lType:101, latitude: 34.20056, longitude:  -118.35861, status:3
+  },
+  {
+    my_id: 3, name: "SFO", abbrev: "airport3", lType:101, latitude: 37.615223, longitude: -122.389977, status:2
+  },
+  {
+    my_id: 4, name: "L45", abbrev: "airport4", lType:101, latitude: 35.324861, longitude: -118.996028, status:1
+  },
+  {
+    my_id: 5, name: "SMF", abbrev: "airport5", lType:101, latitude: 38.69556, longitude: -121.59083, status:7
+  },
+  {
+    my_id: 6, name: "SAN", abbrev: "airport6", lType:101, latitude: 32.731770, longitude: -117.197624, status:0
+  }
+]);
+
+db.currentdata.insertMany([{
+    l_id: 1,
+    data: 4,
+    rawData: 123,
+    timeOfData: '2022-01-01 00:15:00',
+    step: 3
+  }, {
+    l_id: 2,
+    data: 4,
+    rawData: 123,
+    timeOfData: '2022-01-01 02:00:00',
+    step: 2
+  }, {
+    l_id: 3,
+    data: 4,
+    rawData: 123,
+    timeOfData: '2022-01-01 03:00:00',
+    step: 1
+  }, {
+    l_id: 4,
+    data: 4,
+    rawData: 123,
+    timeOfData: '2022-01-01 04:00:00',
+    step: 2
+  }, {
+    l_id: 5,
+    data: 4,
+    rawData: 123,
+    timeOfData: '2022-01-01 05:00:00',
+    step: 2
+  }, {
+    l_id: 6,
+    data: 4,
+    rawData: 123,
+    timeOfData: '2022-01-01 06:00:00',
+    step: 2
+  }
+]);
+
+db.markedStatus.insertMany([{
+    l_id: 1,
+    statusMark:  3,
+    markedTime: '2022-01-01 01:00:00',
+    unverified: 1,
+    levelID: 8,
+    levelValue: 3,
+    lTime: '2022-01-01 01:00:00',
+    lastPollRequest: '2022-01-01 01:00:00',
+    inAlarm: 0
+  },{
+    l_id: 2,
+    statusMark:  2,
+    markedTime: '2022-01-01 02:00:00',
+    unverified: 1,
+    levelID: 8,
+    levelValue: 4,
+    lTime: '2022-01-01 02:00:00',
+    lastPollRequest: '2022-01-01 02:00:00',
+    inAlarm: 1
+  },{
+    l_id: 3,
+    statusMark:  2,
+    markedTime: '2022-01-01 03:00:00',
+    unverified: 1,
+    levelID: 8,
+    levelValue: 12,
+    lTime: '2022-01-01 03:00:00',
+    lastPollRequest: '2022-01-01 03:00:00',
+    inAlarm: 1
+  },{
+    l_id: 4,
+    statusMark:  2,
+    markedTime: '2022-01-01 04:00:00',
+    unverified: 1,
+    levelID: 8,
+    levelValue: 83,
+    lTime: '2022-01-01 04:00:00',
+    lastPollRequest: '2022-01-01 04:00:00',
+    inAlarm: 1
+  },{
+    l_id: 5,
+    statusMark:  2,
+    markedTime: '2022-01-01 05:00:00',
+    unverified: 1,
+    levelID: 8,
+    levelValue: 843,
+    lTime: '2022-01-01 05:00:00',
+    lastPollRequest: '2022-01-01 05:00:00',
+    inAlarm: 1
+  },{
+    l_id: 6,
+    statusMark:  0,
+    markedTime: '2022-01-01 06:00:00',
+    unverified: 1,
+    levelID: 8,
+    levelValue: 843,
+    lTime: '2022-01-01 06:00:00',
+    lastPollRequest: '2022-01-01 06:00:00',
+    inAlarm: 0
+  }
+]);
+
+db.createView (
+  "currentStatus",
+  "groupLocations",
+  [
+    {$match: {"includeFlag": 1 } },
+    {
+      $lookup:{
+        from: "location",  
+        localField: "l_id",
+        foreignField: "my_id", 
+        as: "loc",
+        pipeline: [{
+          $match: {
+            $expr: {
+              $and: [{$gt: ["$status", 0] },{$eq: ["$lType", 101] }],
+            }
+          }
+        }]
+      }
+    },
+    {"$unwind":  "$loc"},
+    {
+      $lookup:{
+        from: "markedStatus", 
+        localField: "l_id", 
+        foreignField: "l_id",
+        as: "mrkstat"
+      }
+    },
+    {"$unwind":  "$mrkstat"},
+    {
+      $lookup:{
+        from: "currentdata", 
+        localField: "l_id", 
+        foreignField: "l_id",
+        as: "curdat"
+      }
+    },
+    {"$unwind":  "$curdat"},
+    {
+      $addFields: {
+        "status": {
+          "$cond": {
+            if: {"$eq":["$curdat.step", 1]}, 
+            then: 0,
+            else: {
+              $cond:{
+                if: {"$eq": [{ "$mod": [ "$mrkstat.statusMark" , 2] }, 1] },
+                then: {
+                  $cond:{if: {$eq:["$mrkstat.unverified",1]}, then: 3, else:1}
+                },
+                else: 1
+              }
+            }
+          }
+        },
+      }
+    },
+    {
+      $project: {
+        id:  "$l_id",
+        name: "$loc.name",
+        lastUpdated: "$mrkstat.markedTime",
+        "status": "$status",
+        "latitude":"$loc.latitude",
+        "longitude":"$loc.longitude",
+      }
+    },
+    {"$unset": ["_id", "mrkstat", "loc", "curdat"]} 
+  ]
+);
