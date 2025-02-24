@@ -35,10 +35,10 @@ to consume and display on a map
 
 * id - the unique location identifier 
 * name - the given name of the location
-* lastUpdataed - timestamp of last received dataset
+* lastUpdated - timestamp of last received dataset
 * status - calculated to display current state - 0, 1, or 3 (0=OFF, 1=ON, 3=UNVERIFIED)
-  * if currentdata.step = 0 status is OFF else more action is needed to verify
-  * if markedStatus.statusMark = even status is ON else more action is needed to verify
-  * if markedStatus.unverified != 1 status is ON else there was not enough to confirm state (UNVERIFIED)
+  * if currentdata.step = 0, status is OFF, else more action is needed to verify
+  * if markedStatus.statusMark = even, status is ON, else more action is needed to verify
+  * if markedStatus.unverified != 1, status is ON, else there was not enough to confirm state (UNVERIFIED)
 * latitude - decimal degrees of geographical location latitude
 * longitude - decimal degrees of geographical location longitude 
